@@ -290,6 +290,11 @@ export default function Home() {
                         <FocusTimer />
                         </DialogContent>
                     </Dialog>
+                    <SheetTrigger asChild>
+                        <Button onClick={() => setEditingTask(null)}>
+                          <Plus className="mr-2 h-4 w-4" /> New Task
+                        </Button>
+                    </SheetTrigger>
                 </div>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -303,6 +308,12 @@ export default function Home() {
                       </DropdownMenuItem>
                        <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.focus-timer-trigger')?.click()}>
                         Focus Timer
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => {
+                        setEditingTask(null);
+                        setIsSheetOpen(true);
+                      }}>
+                        New Task
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

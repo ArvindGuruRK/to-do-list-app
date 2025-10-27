@@ -23,14 +23,17 @@ import {
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/lib/types";
 import { useEffect } from "react";
-import { format, add } from "date-fns";
+import { format, add, differenceInMinutes, parse } from "date-fns";
+
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]),
   recurring: z.enum(['none', 'daily', 'weekly', 'monthly']),
-  deadlineHours: z.coerce.number().min(0).optional(),
+  startTime: z.string().regex(timeRegex, { message: "Invalid time format (HH:mm)" }).optional().or(z.literal('')),
+  duration: z.coerce.number().min(0).optional(),
 });
 
 interface TaskFormProps {
@@ -47,25 +50,20 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
       description: "",
       priority: "medium",
       recurring: 'none',
-      deadlineHours: undefined,
+      startTime: "",
+      duration: undefined,
     },
   });
 
   useEffect(() => {
     if (task) {
-      let deadlineHours;
-      if (task.deadline) {
-        const now = new Date();
-        const deadlineDate = new Date(task.deadline);
-        const diffHours = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-        deadlineHours = Math.max(0, Math.round(diffHours));
-      }
       form.reset({
         title: task.title,
         description: task.description || "",
         priority: task.priority,
         recurring: task.recurring,
-        deadlineHours: deadlineHours,
+        startTime: task.startTime || "",
+        duration: task.duration,
       });
     } else {
         form.reset({
@@ -73,21 +71,36 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
             description: "",
             priority: "medium",
             recurring: 'none',
-            deadlineHours: undefined,
+            startTime: "",
+            duration: undefined,
         });
     }
   }, [task, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const deadline = values.deadlineHours ? add(new Date(), { hours: values.deadlineHours }).toISOString() : undefined;
+    const dueDate = task ? task.dueDate : format(new Date(), "yyyy-MM-dd");
+    let deadline: string | undefined = undefined;
+
+    if (values.startTime && values.duration) {
+      try {
+        const startDate = parse(`${dueDate} ${values.startTime}`, 'yyyy-MM-dd HH:mm', new Date());
+        if (!isNaN(startDate.getTime())) {
+          deadline = add(startDate, { minutes: values.duration }).toISOString();
+        }
+      } catch (e) {
+        console.error("Error calculating deadline:", e)
+      }
+    }
     
     onSubmit({
       title: values.title,
       description: values.description,
       priority: values.priority,
       recurring: values.recurring,
-      dueDate: task ? task.dueDate : format(new Date(), "yyyy-MM-dd"),
-      deadline: deadline,
+      dueDate: dueDate,
+      startTime: values.startTime || undefined,
+      duration: values.duration,
+      deadline,
     });
   };
 
@@ -120,19 +133,34 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-            control={form.control}
-            name="deadlineHours"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Deadline (hours from now)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="e.g., 2" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="flex gap-4">
+            <FormField
+              control={form.control}
+              name="startTime"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Start Time</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Duration (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 60" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        </div>
         <div className="flex gap-4">
           <FormField
             control={form.control}

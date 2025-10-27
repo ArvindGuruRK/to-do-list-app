@@ -5,6 +5,7 @@ import {
   Archive,
   CheckCircle2,
   Circle,
+  Clock,
   Edit,
   MoreVertical,
   Plus,
@@ -65,6 +66,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { TaskNotifications } from "@/components/task-notifications";
 
 
 const initialTasks: Task[] = [
@@ -72,6 +74,8 @@ const initialTasks: Task[] = [
     id: "1",
     title: "Design landing page wireframes",
     dueDate: format(startOfDay(new Date()), "yyyy-MM-dd"),
+    startTime: "10:00",
+    duration: 120,
     deadline: add(new Date(), { hours: 2 }).toISOString(),
     priority: "high",
     isCompleted: false,
@@ -82,6 +86,8 @@ const initialTasks: Task[] = [
     title: "Team meeting",
     description: "Discuss Q3 goals and roadmap.",
     dueDate: format(startOfDay(new Date()), "yyyy-MM-dd"),
+    startTime: "14:00",
+    duration: 60,
     deadline: add(new Date(), { hours: 4 }).toISOString(),
     priority: "medium",
     isCompleted: false,
@@ -238,6 +244,7 @@ export default function Home() {
 
   return (
     <SidebarProvider>
+      <TaskNotifications tasks={tasks} />
       <div className="flex h-screen w-full bg-background font-body">
         <Sidebar>
             <SidebarHeader>
@@ -373,6 +380,20 @@ export default function Home() {
                                   {task.description}
                                 </p>
                               )}
+                               <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                {task.startTime && (
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    <span>{task.startTime}</span>
+                                  </div>
+                                )}
+                                {task.duration && (
+                                  <div className="flex items-center gap-1">
+                                    <Timer className="h-3.5 w-3.5" />
+                                    <span>{task.duration} min</span>
+                                  </div>
+                                )}
+                              </div>
                               {task.deadline && !task.isCompleted && (
                                 <TaskTimer deadline={task.deadline} />
                               )}

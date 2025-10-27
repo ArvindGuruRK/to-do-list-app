@@ -252,7 +252,7 @@ export default function Home() {
             <SidebarHeader>
               <Logo />
             </SidebarHeader>
-            <SidebarContent className="flex-1 flex flex-col justify-center items-center p-4">
+            <SidebarContent className="flex-1 flex flex-col justify-center items-center p-4 md:bg-transparent bg-white dark:bg-card">
               <Calendar
                 mode="single"
                 selected={date}

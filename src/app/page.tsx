@@ -249,7 +249,7 @@ export default function Home() {
   return (
     <SidebarProvider>
       <TaskNotifications tasks={tasks} />
-      <div className="flex h-screen w-full bg-background font-body">
+      <div className="flex h-screen w-full bg-transparent font-body">
         <Sidebar>
             <SidebarHeader className="md:bg-transparent bg-white dark:bg-card">
               <Logo />
@@ -268,8 +268,8 @@ export default function Home() {
         </Sidebar>
         
         <SidebarInset>
-          <main className="flex-1 flex flex-col overflow-hidden relative">
-             <div className="absolute inset-0 -z-10 h-full w-full opacity-50">
+          <main className="flex-1 flex flex-col overflow-hidden relative bg-transparent">
+             <div className="absolute inset-0 -z-10 h-full w-full">
                 <AnimatedBackground />
             </div>
             <header className="flex items-center justify-between border-b p-4">

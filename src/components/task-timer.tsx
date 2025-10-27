@@ -11,8 +11,10 @@ interface TaskTimerProps {
 export function TaskTimer({ deadline }: TaskTimerProps) {
   const [timeLeft, setTimeLeft] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const calculateTimeLeft = () => {
       const now = new Date();
       const deadlineDate = new Date(deadline);
@@ -42,6 +44,10 @@ export function TaskTimer({ deadline }: TaskTimerProps) {
 
     return () => clearInterval(interval);
   }, [deadline]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className={cn("flex items-center gap-2 text-sm mt-1", isUrgent ? "text-red-500 font-medium" : "text-muted-foreground")}>

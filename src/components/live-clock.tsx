@@ -5,16 +5,14 @@ import { Clock } from "lucide-react";
 
 export function LiveClock() {
   const [time, setTime] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const getTime = () => {
       const now = new Date();
-      // IST is UTC+5:30
-      const utcOffset = now.getTimezoneOffset() * 60 * 1000;
-      const istOffset = (5 * 60 + 30) * 60 * 1000;
-      const istTime = new Date(now.getTime() + utcOffset + istOffset);
-      
-      const formattedTime = istTime.toLocaleTimeString("en-US", {
+      const formattedTime = now.toLocaleTimeString("en-US", {
+        timeZone: "Asia/Kolkata",
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -29,7 +27,7 @@ export function LiveClock() {
     return () => clearInterval(timerId); // Cleanup on unmount
   }, []);
 
-  if (!time) {
+  if (!isMounted) {
     return null; // Don't render on server or before first client-side render
   }
 

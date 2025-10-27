@@ -5,9 +5,11 @@ import {
   Archive,
   CheckCircle2,
   Circle,
+  Clock,
   Edit,
   MoreVertical,
   Plus,
+  Timer,
   Trash2,
   Wand2,
 } from "lucide-react";
@@ -46,12 +48,24 @@ import { TaskForm } from "@/components/task-form";
 import { SmartScheduler } from "@/components/smart-scheduler";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LiveClock } from "@/components/live-clock";
+import { Stopwatch } from "@/components/stopwatch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { TaskTimer } from "@/components/task-timer";
+
 
 const initialTasks: Task[] = [
   {
     id: "1",
     title: "Design landing page wireframes",
     dueDate: format(startOfDay(new Date()), "yyyy-MM-dd"),
+    deadline: add(new Date(), { hours: 2 }).toISOString(),
     priority: "high",
     isCompleted: false,
     recurring: "none",
@@ -61,6 +75,7 @@ const initialTasks: Task[] = [
     title: "Team meeting",
     description: "Discuss Q3 goals and roadmap.",
     dueDate: format(startOfDay(new Date()), "yyyy-MM-dd"),
+    deadline: add(new Date(), { hours: 4 }).toISOString(),
     priority: "medium",
     isCompleted: false,
     recurring: "none",
@@ -69,6 +84,7 @@ const initialTasks: Task[] = [
     id: "3",
     title: "Develop user authentication",
     dueDate: format(add(startOfDay(new Date()), { days: 1 }), "yyyy-MM-dd"),
+    deadline: add(new Date(), { days: 1, hours: 8 }).toISOString(),
     priority: "high",
     isCompleted: false,
     recurring: "none",
@@ -127,7 +143,7 @@ export default function Home() {
 
   const tasksForSelectedDate = useMemo(() => {
     const nonRecurring = tasks.filter(
-      (task) => task.dueDate === selectedDateStr && task.recurring === 'none'
+      (task) => task.dueDate === selectedDateStr && (task.recurring === 'none' || !task.recurring)
     );
     const recurringInstances = getRecurringTasksForDate(tasks, selectedDateStr);
     
@@ -145,15 +161,15 @@ export default function Home() {
   const totalTasks = tasksForSelectedDate.length;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  const handleTaskSubmit = (taskData: Omit<Task, "id">) => {
+  const handleTaskSubmit = (taskData: Omit<Task, "id" | "isCompleted">) => {
     if (editingTask) {
       const originalId = editingTask.id.split('-')[0];
       setTasks(
-        tasks.map((t) => (t.id === originalId ? { ...taskData, id: originalId } : t))
+        tasks.map((t) => (t.id === originalId ? { ...t, ...taskData, id: originalId } : t))
       );
       toast({ title: "Task updated successfully!" });
     } else {
-      setTasks([...tasks, { ...taskData, id: crypto.randomUUID() }]);
+      setTasks([...tasks, { ...taskData, id: crypto.randomUUID(), isCompleted: false }]);
       toast({ title: "Task added successfully!" });
     }
     setIsSheetOpen(false);
@@ -218,7 +234,8 @@ export default function Home() {
             className="rounded-md"
           />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex items-center justify-between">
+          <LiveClock />
           <ThemeToggle />
         </div>
       </aside>
@@ -232,6 +249,19 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
             <SmartScheduler tasks={tasksForSelectedDate} />
+             <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Timer className="mr-2 h-4 w-4" /> Stopwatch
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Stopwatch</DialogTitle>
+                </DialogHeader>
+                <Stopwatch />
+              </DialogContent>
+            </Dialog>
              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button onClick={() => setEditingTask(null)}>
@@ -306,6 +336,9 @@ export default function Home() {
                             <p className="text-sm text-muted-foreground">
                               {task.description}
                             </p>
+                          )}
+                           {task.deadline && !task.isCompleted && (
+                            <TaskTimer deadline={task.deadline} />
                           )}
                         </div>
                         <div className="flex items-center gap-4">

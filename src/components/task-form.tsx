@@ -23,13 +23,14 @@ import {
 import { Button } from "@/components/ui/button";
 import type { Task } from "@/lib/types";
 import { useEffect } from "react";
-import { format } from "date-fns";
+import { format, add } from "date-fns";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]),
   recurring: z.enum(['none', 'daily', 'weekly', 'monthly']),
+  deadlineHours: z.coerce.number().min(0).optional(),
 });
 
 interface TaskFormProps {
@@ -46,16 +47,25 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
       description: "",
       priority: "medium",
       recurring: 'none',
+      deadlineHours: undefined,
     },
   });
 
   useEffect(() => {
     if (task) {
+      let deadlineHours;
+      if (task.deadline) {
+        const now = new Date();
+        const deadlineDate = new Date(task.deadline);
+        const diffHours = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+        deadlineHours = Math.max(0, Math.round(diffHours));
+      }
       form.reset({
         title: task.title,
         description: task.description || "",
         priority: task.priority,
         recurring: task.recurring,
+        deadlineHours: deadlineHours,
       });
     } else {
         form.reset({
@@ -63,14 +73,21 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
             description: "",
             priority: "medium",
             recurring: 'none',
+            deadlineHours: undefined,
         });
     }
   }, [task, form]);
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const deadline = values.deadlineHours ? add(new Date(), { hours: values.deadlineHours }).toISOString() : undefined;
+    
     onSubmit({
-      ...values,
+      title: values.title,
+      description: values.description,
+      priority: values.priority,
+      recurring: values.recurring,
       dueDate: task ? task.dueDate : format(new Date(), "yyyy-MM-dd"),
+      deadline: deadline,
     });
   };
 
@@ -103,6 +120,19 @@ export function TaskForm({ onSubmit, task, onClose }: TaskFormProps) {
             </FormItem>
           )}
         />
+        <FormField
+            control={form.control}
+            name="deadlineHours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Deadline (hours from now)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="e.g., 2" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <div className="flex gap-4">
           <FormField
             control={form.control}

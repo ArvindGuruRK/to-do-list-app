@@ -121,8 +121,9 @@ const Squares: React.FC<SquaresProps> = ({
       const startX = Math.floor(gridOffset.current.x / squareSize) * squareSize;
       const startY = Math.floor(gridOffset.current.y / squareSize) * squareSize;
 
-      const hoveredSquareX = Math.floor((mouseX + gridOffset.current.x % squareSize - startX) / squareSize);
-      const hoveredSquareY = Math.floor((mouseY + gridOffset.current.y % squareSize - startY) / squareSize);
+      const hoveredSquareX = Math.floor((mouseX + (gridOffset.current.x % squareSize) - startX) / squareSize);
+      const hoveredSquareY = Math.floor((mouseY + (gridOffset.current.y % squareSize) - startY) / squareSize);
+
 
       if (
         !hoveredSquareRef.current ||
@@ -144,8 +145,10 @@ const Squares: React.FC<SquaresProps> = ({
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
+      if (canvas) {
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        canvas.removeEventListener('mouseleave', handleMouseLeave);
+      }
     };
   }, [direction, speed, borderColor, hoverFillColor, squareSize]);
 

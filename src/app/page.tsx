@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -69,6 +70,7 @@ import {
 } from "@/components/ui/sidebar";
 import { TaskNotifications } from "@/components/task-notifications";
 import { AnimatedButton } from "@/components/animated-button";
+import AnimatedBackground from "@/components/animated-background";
 
 
 const initialTasks: Task[] = [
@@ -267,6 +269,9 @@ export default function Home() {
         
         <SidebarInset>
           <main className="flex-1 flex flex-col overflow-hidden relative">
+             <div className="absolute inset-0 -z-10">
+                <AnimatedBackground />
+            </div>
             <header className="flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-4">
                  <SidebarTrigger className="md:hidden" />

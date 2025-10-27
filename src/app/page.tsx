@@ -266,16 +266,13 @@ export default function Home() {
         </Sidebar>
         
         <SidebarInset>
-          <main className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 flex flex-col overflow-hidden relative">
             <header className="flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-4">
                  <SidebarTrigger className="md:hidden" />
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight">
                   {format(date || new Date(), "EEEE, MMMM d")}
                 </h1>
-                <div className="hidden md:block">
-                  <LiveClock />
-                </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center gap-2">
@@ -294,23 +291,6 @@ export default function Home() {
                         </DialogContent>
                     </Dialog>
                 </div>
-                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                  <SheetTrigger asChild>
-                    <Button onClick={() => setEditingTask(null)}>
-                      <Plus className="mr-2 h-4 w-4" /> <span className="hidden md:inline">Add Task</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>{editingTask ? "Edit Task" : "Add a new task"}</SheetTitle>
-                    </SheetHeader>
-                    <TaskForm
-                      onSubmit={handleTaskSubmit}
-                      task={editingTask}
-                      onClose={() => setIsSheetOpen(false)}
-                    />
-                  </SheetContent>
-                </Sheet>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="md:hidden">
@@ -448,11 +428,30 @@ export default function Home() {
                 </AnimatePresence>
               </div>
             </div>
+             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                    <Button 
+                        onClick={() => setEditingTask(null)}
+                        className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-lg"
+                        size="icon"
+                    >
+                      <Plus className="h-8 w-8" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent>
+                <SheetHeader>
+                    <SheetTitle>{editingTask ? "Edit Task" : "Add a new task"}</SheetTitle>
+                </SheetHeader>
+                <TaskForm
+                    onSubmit={handleTaskSubmit}
+                    task={editingTask}
+                    onClose={() => setIsSheetOpen(false)}
+                />
+                </SheetContent>
+            </Sheet>
           </main>
         </SidebarInset>
       </div>
     </SidebarProvider>
   );
 }
-
-    

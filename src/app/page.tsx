@@ -269,7 +269,7 @@ export default function Home() {
         
         <SidebarInset>
           <main className="flex-1 flex flex-col overflow-hidden relative">
-             <div className="absolute inset-0 -z-10 h-full w-full">
+             <div className="absolute inset-0 -z-10 h-full w-full opacity-50">
                 <AnimatedBackground />
             </div>
             <header className="flex items-center justify-between border-b p-4">

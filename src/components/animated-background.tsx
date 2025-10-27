@@ -1,6 +1,5 @@
-
 'use client';
-import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
 
@@ -53,12 +52,14 @@ function hexToRgb(hex: string) {
 
 const DotGrid: React.FC<DotGridProps> = ({
   dotSize = 2,
-  gap = 20,
+  gap = 24,
+  baseColor: baseColorProp,
+  activeColor: activeColorProp,
   proximity = 100,
   speedTrigger = 100,
-  shockRadius = 150,
-  shockStrength = 3,
-  maxSpeed = 5000,
+  shockRadius = 200,
+  shockStrength = 2,
+  maxSpeed = 4000,
   resistance = 500,
   returnDuration = 1.5,
   className = '',
@@ -78,36 +79,40 @@ const DotGrid: React.FC<DotGridProps> = ({
     lastY: 0
   });
 
-  const [themeColors, setThemeColors] = useState({ base: '#d4d4d4', active: '#a1a1aa' });
+  const [baseColor, setBaseColor] = React.useState('#cccccc');
+  const [activeColor, setActiveColor] = React.useState('#999999');
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const getThemeColors = () => {
+    // This function will be called on mount and when the theme changes
+    const updateColors = () => {
+      if (typeof window !== 'undefined') {
         const isDark = document.documentElement.classList.contains('dark');
-        setThemeColors({
-            base: isDark ? '#404040' : '#d4d4d4', // zinc-700 and zinc-300
-            active: isDark ? '#a1a1aa' : '#71717a' // zinc-400 and zinc-500
-        });
+        setBaseColor(isDark ? '#444444' : '#cccccc');
+        setActiveColor(isDark ? '#666666' : '#999999');
+      }
     };
 
-    getThemeColors();
+    updateColors();
 
-    const observer = new MutationObserver((mutationsList) => {
-        for(let mutation of mutationsList) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                getThemeColors();
-            }
+    // Watch for theme changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          updateColors();
         }
+      });
     });
 
-    observer.observe(document.documentElement, { attributes: true });
+    observer.observe(document.documentElement, {
+      attributes: true
+    });
 
     return () => observer.disconnect();
   }, []);
 
-  const baseRgb = useMemo(() => hexToRgb(themeColors.base), [themeColors.base]);
-  const activeRgb = useMemo(() => hexToRgb(themeColors.active), [themeColors.active]);
+
+  const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor]);
+  const activeRgb = useMemo(() => hexToRgb(activeColor), [activeColor]);
 
   const circlePath = useMemo(() => {
     if (typeof window === 'undefined' || !window.Path2D) return null;
@@ -178,7 +183,7 @@ const DotGrid: React.FC<DotGridProps> = ({
         const dy = dot.cy - py;
         const dsq = dx * dx + dy * dy;
 
-        let style = themeColors.base;
+        let style = baseColor;
         if (dsq <= proxSq) {
           const dist = Math.sqrt(dsq);
           const t = 1 - dist / proximity;
@@ -200,7 +205,7 @@ const DotGrid: React.FC<DotGridProps> = ({
 
     draw();
     return () => cancelAnimationFrame(rafId);
-  }, [proximity, activeRgb, baseRgb, circlePath, themeColors]);
+  }, [proximity, baseColor, activeColor, activeRgb, baseRgb, circlePath]);
 
   useEffect(() => {
     buildGrid();
@@ -295,7 +300,7 @@ const DotGrid: React.FC<DotGridProps> = ({
       }
     };
 
-    const throttledMove = throttle(onMove, 50);
+    const throttledMove = throttle(onMove, 10); // more responsive
     window.addEventListener('mousemove', throttledMove, { passive: true });
     window.addEventListener('click', onClick);
 
@@ -306,7 +311,7 @@ const DotGrid: React.FC<DotGridProps> = ({
   }, [maxSpeed, speedTrigger, proximity, resistance, returnDuration, shockRadius, shockStrength]);
 
   return (
-    <div ref={wrapperRef} className={`w-full h-full relative ${className}`} style={style}>
+    <div ref={wrapperRef} className={cn("w-full h-full relative", className)} style={style}>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
     </div>
   );

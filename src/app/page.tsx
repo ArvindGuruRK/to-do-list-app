@@ -260,7 +260,6 @@ export default function Home() {
               />
             </SidebarContent>
             <SidebarFooter className="p-4 flex items-center justify-between">
-              <LiveClock />
               <ThemeToggle />
             </SidebarFooter>
         </Sidebar>
@@ -273,6 +272,7 @@ export default function Home() {
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight">
                   {format(date || new Date(), "EEEE, MMMM d")}
                 </h1>
+                <LiveClock />
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center gap-2">
@@ -290,11 +290,23 @@ export default function Home() {
                         <FocusTimer />
                         </DialogContent>
                     </Dialog>
-                    <SheetTrigger asChild>
-                        <Button onClick={() => setEditingTask(null)}>
-                          <Plus className="mr-2 h-4 w-4" /> New Task
-                        </Button>
-                    </SheetTrigger>
+                     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button onClick={() => setEditingTask(null)}>
+                              <Plus className="mr-2 h-4 w-4" /> New Task
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>{editingTask ? "Edit Task" : "Add a new task"}</SheetTitle>
+                        </SheetHeader>
+                        <TaskForm
+                            onSubmit={handleTaskSubmit}
+                            task={editingTask}
+                            onClose={() => setIsSheetOpen(false)}
+                        />
+                        </SheetContent>
+                    </Sheet>
                 </div>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>

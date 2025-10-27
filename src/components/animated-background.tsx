@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
+import { cn } from '@/lib/utils';
 
 gsap.registerPlugin(InertiaPlugin);
 

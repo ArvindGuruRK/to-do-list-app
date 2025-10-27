@@ -20,18 +20,30 @@ interface SquaresProps {
 const Squares: React.FC<SquaresProps> = ({
   direction = 'right',
   speed = 1,
-  borderColor = 'rgba(128, 128, 128, 0.2)',
+  borderColor: initialBorderColor = 'rgba(128, 128, 128, 0.2)',
   squareSize = 40,
-  hoverFillColor = 'rgba(128, 128, 128, 0.1)'
+  hoverFillColor: initialHoverFillColor = 'rgba(128, 128, 128, 0.1)'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
   const gridOffset = useRef<GridOffset>({ x: 0, y: 0 });
   const hoveredSquareRef = useRef<{x: number, y: number} | null>(null);
+  const [gradientColor, setGradientColor] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    // This effect runs once on the client to get the themed background color
+    if (typeof window !== 'undefined') {
+        const computedStyle = getComputedStyle(document.documentElement);
+        const bg = computedStyle.getPropertyValue('--background').trim();
+        // HSL values are space-separated, so we convert to a functional hsla() color
+        const color = `hsl(${bg})`;
+        setGradientColor(color);
+    }
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !gradientColor) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -61,25 +73,26 @@ const Squares: React.FC<SquaresProps> = ({
             Math.floor((x - startX) / squareSize) === hoveredSquareRef.current.x &&
             Math.floor((y - startY) / squareSize) === hoveredSquareRef.current.y
           ) {
-            ctx.fillStyle = hoverFillColor;
+            ctx.fillStyle = initialHoverFillColor;
             ctx.fillRect(squareX, squareY, squareSize, squareSize);
           }
 
-          ctx.strokeStyle = borderColor;
+          ctx.strokeStyle = initialBorderColor;
           ctx.strokeRect(squareX, squareY, squareSize, squareSize);
         }
       }
 
+      // Create a radial gradient that fades from transparent to the current background color
       const gradient = ctx.createRadialGradient(
         canvas.width / 2,
         canvas.height / 2,
         0,
         canvas.width / 2,
         canvas.height / 2,
-        Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2
+        Math.max(canvas.width, canvas.height) / 1.5
       );
       gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      gradient.addColorStop(1, '#060010');
+      gradient.addColorStop(1, gradientColor);
 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -150,7 +163,7 @@ const Squares: React.FC<SquaresProps> = ({
         canvas.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [direction, speed, borderColor, hoverFillColor, squareSize]);
+  }, [direction, speed, initialBorderColor, initialHoverFillColor, squareSize, gradientColor]);
 
   return <canvas ref={canvasRef} className="w-full h-full border-none block"></canvas>;
 };

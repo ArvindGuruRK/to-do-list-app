@@ -5,13 +5,11 @@ import {
   Archive,
   CheckCircle2,
   Circle,
-  Clock,
   Edit,
   MoreVertical,
   Plus,
   Timer,
   Trash2,
-  Wand2,
 } from "lucide-react";
 import { add, format, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
@@ -58,6 +56,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { TaskTimer } from "@/components/task-timer";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 
 const initialTasks: Task[] = [
@@ -104,6 +111,11 @@ export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { toast } = useToast();
 
@@ -220,174 +232,200 @@ export default function Home() {
     low: "bg-green-500",
   };
 
+  if (!isMounted) {
+    return null; // Don't render on server
+  }
+
   return (
-    <div className="flex h-screen w-full bg-background font-body">
-      <aside className="hidden md:flex flex-col w-80 lg:w-96 border-r p-4 transition-all duration-300">
-        <div className="flex items-center gap-2 p-4">
-          <Logo />
-        </div>
-        <div className="flex-1 flex justify-center items-center p-4">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleDateSelect}
-            className="rounded-md"
-          />
-        </div>
-        <div className="p-4 flex items-center justify-between">
-          <LiveClock />
-          <ThemeToggle />
-        </div>
-      </aside>
-
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b p-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {format(date || new Date(), "EEEE, MMMM d")}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <SmartScheduler tasks={tasksForSelectedDate} />
-             <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Timer className="mr-2 h-4 w-4" /> Stopwatch
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Stopwatch</DialogTitle>
-                </DialogHeader>
-                <Stopwatch />
-              </DialogContent>
-            </Dialog>
-             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-              <SheetTrigger asChild>
-                <Button onClick={() => setEditingTask(null)}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Task
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>{editingTask ? "Edit Task" : "Add a new task"}</SheetTitle>
-                </SheetHeader>
-                <TaskForm
-                  onSubmit={handleTaskSubmit}
-                  task={editingTask}
-                  onClose={() => setIsSheetOpen(false)}
-                />
-              </SheetContent>
-            </Sheet>
-          </div>
-        </header>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background font-body">
+        <Sidebar>
+            <SidebarHeader>
+              <Logo />
+            </SidebarHeader>
+            <SidebarContent className="flex-1 flex flex-col justify-center items-center p-4">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleDateSelect}
+                className="rounded-md"
+              />
+            </SidebarContent>
+            <SidebarFooter className="p-4 flex items-center justify-between">
+              <LiveClock />
+              <ThemeToggle />
+            </SidebarFooter>
+        </Sidebar>
         
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="mb-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Daily Progress</CardTitle>
-                <CardDescription>
-                  You've completed {completedTasks} of {totalTasks} tasks.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Progress value={progress} className="h-2" />
-              </CardContent>
-            </Card>
-          </div>
+        <SidebarInset>
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <header className="flex items-center justify-between border-b p-4">
+              <div className="flex items-center gap-4">
+                 <SidebarTrigger className="md:hidden" />
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                  {format(date || new Date(), "EEEE, MMMM d")}
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="hidden md:flex items-center gap-2">
+                    <SmartScheduler tasks={tasksForSelectedDate} />
+                    <Dialog>
+                        <DialogTrigger asChild>
+                        <Button variant="outline">
+                            <Timer className="mr-2 h-4 w-4" /> Stopwatch
+                        </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Stopwatch</DialogTitle>
+                        </DialogHeader>
+                        <Stopwatch />
+                        </DialogContent>
+                    </Dialog>
+                </div>
+                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button onClick={() => setEditingTask(null)}>
+                      <Plus className="mr-2 h-4 w-4" /> <span className="hidden md:inline">Add Task</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>{editingTask ? "Edit Task" : "Add a new task"}</SheetTitle>
+                    </SheetHeader>
+                    <TaskForm
+                      onSubmit={handleTaskSubmit}
+                      task={editingTask}
+                      onClose={() => setIsSheetOpen(false)}
+                    />
+                  </SheetContent>
+                </Sheet>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="md:hidden">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                       <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.smart-scheduler-trigger')?.click()}>
+                        Smart Schedule
+                      </DropdownMenuItem>
+                       <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.stopwatch-trigger')?.click()}>
+                        Stopwatch
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+              </div>
+            </header>
+            
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="mb-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Daily Progress</CardTitle>
+                    <CardDescription>
+                      You've completed {completedTasks} of {totalTasks} tasks.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Progress value={progress} className="h-2" />
+                  </CardContent>
+                </Card>
+              </div>
 
-          <div className="space-y-4">
-            <AnimatePresence>
-              {tasksForSelectedDate.length > 0 ? (
-                tasksForSelectedDate.map((task, index) => (
-                  <motion.div
-                    key={task.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <Card
-                      className={cn(
-                        "transition-all",
-                        task.isCompleted && "bg-muted/50"
-                      )}
-                    >
-                      <CardContent className="p-4 flex items-center gap-4">
-                        <button onClick={() => toggleComplete(task.id)}>
-                          {task.isCompleted ? (
-                            <CheckCircle2 className="h-6 w-6 text-accent" />
-                          ) : (
-                            <Circle className="h-6 w-6 text-muted-foreground" />
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {tasksForSelectedDate.length > 0 ? (
+                    tasksForSelectedDate.map((task, index) => (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <Card
+                          className={cn(
+                            "transition-all",
+                            task.isCompleted && "bg-muted/50"
                           )}
-                        </button>
-                        <div className="flex-1">
-                          <p
-                            className={cn(
-                              "font-medium",
-                              task.isCompleted && "line-through text-muted-foreground"
-                            )}
-                          >
-                            {task.title}
-                          </p>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {task.description}
-                            </p>
-                          )}
-                           {task.deadline && !task.isCompleted && (
-                            <TaskTimer deadline={task.deadline} />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={cn(
-                              "h-2.5 w-2.5 rounded-full",
-                              priorityClasses[task.priority]
-                            )}
-                          />
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem onClick={() => handleEdit(task)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-500"
-                                onClick={() => handleDelete(task.id)}
+                        >
+                          <CardContent className="p-4 flex items-center gap-4">
+                            <button onClick={() => toggleComplete(task.id)}>
+                              {task.isCompleted ? (
+                                <CheckCircle2 className="h-6 w-6 text-accent" />
+                              ) : (
+                                <Circle className="h-6 w-6 text-muted-foreground" />
+                              )}
+                            </button>
+                            <div className="flex-1">
+                              <p
+                                className={cn(
+                                  "font-medium",
+                                  task.isCompleted && "line-through text-muted-foreground"
+                                )}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                {task.title}
+                              </p>
+                              {task.description && (
+                                <p className="text-sm text-muted-foreground">
+                                  {task.description}
+                                </p>
+                              )}
+                              {task.deadline && !task.isCompleted && (
+                                <TaskTimer deadline={task.deadline} />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={cn(
+                                  "h-2.5 w-2.5 rounded-full",
+                                  priorityClasses[task.priority]
+                                )}
+                              />
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => handleEdit(task)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-red-500"
+                                    onClick={() => handleDelete(task.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+                        <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg">
+                          <Archive className="mx-auto h-12 w-12 text-muted-foreground" />
+                          <h3 className="mt-4 text-lg font-medium">No tasks for today</h3>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Enjoy your free day or add a new task to get started.
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))
-              ) : (
-                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                    <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg">
-                      <Archive className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="mt-4 text-lg font-medium">No tasks for today</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Enjoy your free day or add a new task to get started.
-                      </p>
-                    </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </main>
-    </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }

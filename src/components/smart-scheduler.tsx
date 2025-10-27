@@ -66,7 +66,7 @@ export function SmartScheduler({ tasks }: SmartSchedulerProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="smart-scheduler-trigger">
           <Wand2 className="mr-2 h-4 w-4" /> Smart Schedule
         </Button>
       </DialogTrigger>

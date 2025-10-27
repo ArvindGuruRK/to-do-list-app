@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -272,6 +273,9 @@ export default function Home() {
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight">
                   {format(date || new Date(), "EEEE, MMMM d")}
                 </h1>
+                <div className="hidden md:block">
+                  <LiveClock />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center gap-2">
@@ -450,3 +454,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,7 +16,6 @@ export function LiveClock() {
         timeZone: "Asia/Kolkata",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
         hour12: true,
       });
       setTime(`${formattedTime} IST`);
@@ -28,7 +28,12 @@ export function LiveClock() {
   }, []);
 
   if (!isMounted) {
-    return null; // Don't render on server or before first client-side render
+    return (
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <Clock className="h-4 w-4" />
+        <span>--:-- -- IST</span>
+      </div>
+    );
   }
 
   return (
@@ -38,3 +43,5 @@ export function LiveClock() {
     </div>
   );
 }
+
+    

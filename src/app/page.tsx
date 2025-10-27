@@ -68,6 +68,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { TaskNotifications } from "@/components/task-notifications";
+import { AnimatedButton } from "@/components/animated-button";
 
 
 const initialTasks: Task[] = [
@@ -292,9 +293,9 @@ export default function Home() {
                     </Dialog>
                      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                         <SheetTrigger asChild>
-                            <Button onClick={() => setEditingTask(null)}>
+                           <AnimatedButton>
                               <Plus className="mr-2 h-4 w-4" /> New Task
-                            </Button>
+                            </AnimatedButton>
                         </SheetTrigger>
                         <SheetContent>
                         <SheetHeader>

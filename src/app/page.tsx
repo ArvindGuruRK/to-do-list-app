@@ -249,7 +249,7 @@ export default function Home() {
       <TaskNotifications tasks={tasks} />
       <div className="flex h-screen w-full bg-background font-body">
         <Sidebar>
-            <SidebarHeader>
+            <SidebarHeader className="md:bg-transparent bg-white dark:bg-card">
               <Logo />
             </SidebarHeader>
             <SidebarContent className="flex-1 flex flex-col justify-center items-center p-4 md:bg-transparent bg-white dark:bg-card">

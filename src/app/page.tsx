@@ -48,7 +48,7 @@ import { SmartScheduler } from "@/components/smart-scheduler";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LiveClock } from "@/components/live-clock";
-import { Stopwatch } from "@/components/stopwatch";
+import { FocusTimer } from "@/components/focus-timer";
 import {
   Dialog,
   DialogContent,
@@ -278,15 +278,15 @@ export default function Home() {
                     <SmartScheduler tasks={tasksForSelectedDate} />
                     <Dialog>
                         <DialogTrigger asChild>
-                        <Button variant="outline">
-                            <Timer className="mr-2 h-4 w-4" /> Stopwatch
+                        <Button variant="outline" className="focus-timer-trigger">
+                            <Timer className="mr-2 h-4 w-4" /> Focus Timer
                         </Button>
                         </DialogTrigger>
                         <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Stopwatch</DialogTitle>
+                            <DialogTitle>Focus Timer</DialogTitle>
                         </DialogHeader>
-                        <Stopwatch />
+                        <FocusTimer />
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -317,8 +317,8 @@ export default function Home() {
                        <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.smart-scheduler-trigger')?.click()}>
                         Smart Schedule
                       </DropdownMenuItem>
-                       <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.stopwatch-trigger')?.click()}>
-                        Stopwatch
+                       <DropdownMenuItem onSelect={() => document.querySelector<HTMLButtonElement>('.focus-timer-trigger')?.click()}>
+                        Focus Timer
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

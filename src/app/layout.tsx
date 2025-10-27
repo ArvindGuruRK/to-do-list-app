@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: "Arvind's daily tasks",
+  title: "Arvind's tasks",
   description: 'Plan your day and month with ease.',
 };
 

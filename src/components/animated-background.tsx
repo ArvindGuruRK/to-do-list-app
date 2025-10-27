@@ -51,6 +51,37 @@ function hexToRgb(hex: string) {
   };
 }
 
+// Function to parse HSL string "H S% L%" into an RGB object
+function hslToRgb(hsl: string) {
+  const [h, s, l] = hsl.match(/\d+(\.\d+)?/g)!.map(Number);
+  const sNorm = s / 100;
+  const lNorm = l / 100;
+  const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lNorm - c / 2;
+  let r = 0, g = 0, b = 0;
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+
+  r = Math.round((r + m) * 255);
+  g = Math.round((g + m) * 255);
+  b = Math.round((b + m) * 255);
+
+  return { r, g, b };
+}
+
 const DotGrid: React.FC<DotGridProps> = ({
   dotSize = 2,
   gap = 24,
@@ -79,7 +110,7 @@ const DotGrid: React.FC<DotGridProps> = ({
   });
 
   const [baseColor, setBaseColor] = React.useState('#cccccc');
-  const [activeColor, setActiveColor] = React.useState('#999999');
+  const [activeColor, setActiveColor] = React.useState('hsl(0, 84.2%, 60.2%)');
 
   useEffect(() => {
     // This function will be called on mount and when the theme changes
@@ -87,7 +118,10 @@ const DotGrid: React.FC<DotGridProps> = ({
       if (typeof window !== 'undefined') {
         const isDark = document.documentElement.classList.contains('dark');
         setBaseColor(isDark ? '#444444' : '#cccccc');
-        setActiveColor(isDark ? '#666666' : '#999999');
+        
+        const computedStyle = getComputedStyle(document.documentElement);
+        const primaryColorValue = computedStyle.getPropertyValue('--primary').trim();
+        setActiveColor(`hsl(${primaryColorValue})`);
       }
     };
 
@@ -111,7 +145,12 @@ const DotGrid: React.FC<DotGridProps> = ({
 
 
   const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor]);
-  const activeRgb = useMemo(() => hexToRgb(activeColor), [activeColor]);
+  const activeRgb = useMemo(() => {
+    if (activeColor.startsWith('hsl')) {
+      return hslToRgb(activeColor);
+    }
+    return hexToRgb(activeColor);
+  }, [activeColor]);
 
   const circlePath = useMemo(() => {
     if (typeof window === 'undefined' || !window.Path2D) return null;
@@ -204,7 +243,7 @@ const DotGrid: React.FC<DotGridProps> = ({
 
     draw();
     return () => cancelAnimationFrame(rafId);
-  }, [proximity, baseColor, activeColor, activeRgb, baseRgb, circlePath]);
+  }, [proximity, baseColor, activeRgb, baseRgb, circlePath]);
 
   useEffect(() => {
     buildGrid();

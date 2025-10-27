@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 type CanvasStrokeStyle = string | CanvasGradient | CanvasPattern;
 
@@ -28,8 +29,16 @@ const Squares: React.FC<SquaresProps> = ({
   const requestRef = useRef<number | null>(null);
   const gridOffset = useRef<GridOffset>({ x: 0, y: 0 });
   const mousePosition = useRef<{ x: number, y: number } | null>(null);
+  const [backgroundColor, setBackgroundColor] = useState('rgba(0, 0, 0, 0.9)');
 
   useEffect(() => {
+    // This will run on the client after mount, so window is available.
+    const bodyColor = getComputedStyle(document.body).getPropertyValue('background-color');
+    // Convert 'rgb(r, g, b)' to 'rgba(r, g, b, 0.9)'
+    if (bodyColor) {
+       setBackgroundColor(bodyColor.replace('rgb', 'rgba').replace(')', ', 0.9)'));
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -74,7 +83,6 @@ const Squares: React.FC<SquaresProps> = ({
         ctx.fillRect(x, y, squareSize, squareSize);
       }
 
-
       const gradient = ctx.createRadialGradient(
         canvas.width / 2,
         canvas.height / 2,
@@ -84,8 +92,7 @@ const Squares: React.FC<SquaresProps> = ({
         Math.max(canvas.width, canvas.height) / 1.5
       );
       gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      gradient.addColorStop(1, 'rgba(var(--background-rgb, 0 0 0), 0.9)');
-
+      gradient.addColorStop(1, backgroundColor);
 
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -150,7 +157,7 @@ const Squares: React.FC<SquaresProps> = ({
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [direction, speed, borderColor, hoverFillColor, squareSize]);
+  }, [direction, speed, borderColor, hoverFillColor, squareSize, backgroundColor]);
 
   return <canvas ref={canvasRef} className="w-full h-full border-none block opacity-50"></canvas>;
 };
